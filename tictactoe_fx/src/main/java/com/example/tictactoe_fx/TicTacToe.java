@@ -61,7 +61,13 @@ public class TicTacToe extends Application {
         btnPlayGame.setOnAction((event) -> this.startOver());
 
         Button btnLoadGame = new Button("Load Game");
-        btnLoadGame.setOnAction((event) -> this.loadGame());
+        btnLoadGame.setOnAction((event) -> {
+            try {
+                this.loadGame();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         Button btnSaveGame = new Button("Save Game");
         btnSaveGame.setOnAction((event) -> {
@@ -153,12 +159,12 @@ public class TicTacToe extends Application {
     }
 
 
-    private void loadGame() {
+    private void loadGame() throws IOException {
         this.playerIdx = -1;
         this.squaresPlayed = 0;
         // Create Tic Tac Toe subview, and set it into the parent layout's center position, replacing the config
         // menu.
-        this.board = createBoard();
+        this.board = loadBoard();
         this.gameLayout.setCenter(this.board);
         // Start the game. After this, game progress progresses with button board button clicks.
         play();
@@ -246,6 +252,7 @@ public class TicTacToe extends Application {
             rc.setFillHeight(true);
             rc.setVgrow(Priority.ALWAYS);
             board.getRowConstraints().add(rc);
+
             for(int c=0; c<this.squares; c++) {
                 // Set this column size constraints, but just once
                 if( r == 0) {
@@ -257,6 +264,7 @@ public class TicTacToe extends Application {
                 // Add Button to row column location.
                 BoardButton square = new BoardButton(c, r, "   ");
                 square.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
                 square.setOnAction((event) -> {
                     // If this button is already marked give an illegal move notice.
                     if(square.isAvailable()) {
@@ -284,7 +292,6 @@ public class TicTacToe extends Application {
         }
         board.setAlignment(Pos.CENTER);
         initializeGridPaneArray(board);
-
         return board;
     }
 
@@ -294,5 +301,70 @@ public class TicTacToe extends Application {
         {
             this.gridPaneArray[GridPane.getRowIndex(node)][GridPane.getColumnIndex(node)] = node;
         }
+    }
+
+    private GridPane loadBoard() throws IOException {
+        Database database = new Database();
+        database = database.uploadGameFromFile();
+        ArrayList<String> namesAndMarks = database.getPlayersNameAndMarks();
+        this.players.add(
+                this.playerFactory.getPlayer(PlayerFactory.PlayerTypes.SENTIENT,
+                        namesAndMarks.get(0), namesAndMarks.get(1), database.getPlayerTurn(namesAndMarks.get(0))));
+        this.players.add(
+                this.playerFactory.getPlayer(PlayerFactory.PlayerTypes.SENTIENT,
+                        namesAndMarks.get(2), namesAndMarks.get(3), database.getPlayerTurn(namesAndMarks.get(2))));
+        GridPane board = new GridPane();
+        for (int r = 0; r < this.squares; r++) {
+            // Set this row size constraint
+            RowConstraints rc = new RowConstraints();
+            rc.setFillHeight(true);
+            rc.setVgrow(Priority.ALWAYS);
+            board.getRowConstraints().add(rc);
+            for (int c = 0; c < this.squares; c++) {
+                // Set this column size constraints, but just once
+                if (r == 0) {
+                    ColumnConstraints cc = new ColumnConstraints();
+                    cc.setFillWidth(true);
+                    cc.setHgrow(Priority.ALWAYS);
+                    board.getColumnConstraints().add(cc);
+                }
+                // Add Button to row column location.
+                //TODO aici creezi diferit
+
+                BoardButton square = new BoardButton(c, r, "   ");
+                square.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                if(database.containsMove(r,c)){
+                    System.out.println(r + "  " + c);
+                    square.setText(database.getPlayerMark(r,c));
+                }
+                square.setOnAction((event) -> {
+                    // If this button is already marked give an illegal move notice.
+                    if (square.isAvailable()) {
+                        // Mark this board button with the current players marker
+                        Player current = this.players.get(this.playerIdx);
+                        square.setText(current.getMarker());
+                        // TODO: Check for winner here, and announce the winner before going to next player if there is one.
+                        if (checkTie()) {
+                            this.announceWinner(null);
+                        } else if (checkWinner(square.getRow(), square.getCol(), current.getMarker())) {
+                            this.announceWinner(current);
+                        } else {
+                            // continue playing if no winner is found.
+                            play();
+                        }
+                    } else {
+                        Alert a = new Alert(Alert.AlertType.ERROR);
+                        a.setTitle("Illegal Move!");
+                        a.setContentText("That square is already occupied.");
+                        a.show();
+                    }
+                });
+                board.add(square, c, r);
+            }
+        }
+        board.setAlignment(Pos.CENTER);
+        initializeGridPaneArray(board);
+
+        return board;
     }
 }

@@ -1,1 +1,1 @@
-{"boardInfo":{"[s, 2, 2]":"smecher","[a, 0, 0]":"alex","[a, 1, 1]":"alex","[s, 1, 2]":"smecher","[s, 2, 0]":"smecher","[a, 0, 2]":"alex","[a, 1, 0]":"alex"}}
+{"boardInfo":{"11":["x","alex"],"02":["0","petra"],"20":["0","petra"],"10":["x","alex"],"21":["x","alex"]},"playersNameAndMarks":["petra","0","alex","x","alex","x"]}
