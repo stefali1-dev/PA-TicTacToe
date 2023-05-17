@@ -1,6 +1,8 @@
 package com.example.tictactoe_fx;
 
-public abstract class Player {
+import java.io.Serializable;
+
+public abstract class Player implements Serializable {
 
     private final String name;
     private final String marker;
@@ -29,6 +31,12 @@ public abstract class Player {
         this.wins++;
     }
 
+    public PlayerFactory.PlayerTypes getType(){
+        if(this.getClass() == Sentient.class)
+            return PlayerFactory.PlayerTypes.SENTIENT;
+        else
+            return PlayerFactory.PlayerTypes.COMPUTER;
+    }
     //public abstract void takeTurn(GridPane board);
     public abstract void takeTurn(TicTacToe game);
 }

@@ -33,6 +33,8 @@ public class TicTacToe extends Application {
     // Player types
     PlayerFactory playerFactory = new PlayerFactory();
 
+    Database data = new Database();
+
     @Override
     public void init() throws Exception {
         super.init();
@@ -41,10 +43,13 @@ public class TicTacToe extends Application {
         this.squares = Integer.parseInt(params.getNamed().get("squares"));
         this.squaresSquared = this.squares * this.squares;
         this.players = new ArrayList<>();
+
+
     }
 
     @Override
-    public void start(Stage window) {
+    public void start(Stage window) throws IOException {
+        //System.out.println(data.getPlayersNameAndMarks() + "1");
         window.setWidth(size);
         window.setHeight(size);
 
@@ -63,6 +68,8 @@ public class TicTacToe extends Application {
         Button btnLoadGame = new Button("Load Game");
         btnLoadGame.setOnAction((event) -> {
             try {
+                //TODO add players here
+                this.data = data.uploadGameFromFile(data);
                 this.loadGame();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -135,6 +142,7 @@ public class TicTacToe extends Application {
             int turn = this.players.size();
             this.players.add(
                     this.playerFactory.getPlayer(comboBox.getValue(), name, marker, turn));
+            this.data.savePlayerType(name, comboBox.getValue());
             // Clear the menu components.
             comboBox.setValue(null);
             tfPlayerName.setText(null);
@@ -160,8 +168,23 @@ public class TicTacToe extends Application {
 
 
     private void loadGame() throws IOException {
-        this.playerIdx = -1;
         this.squaresPlayed = 0;
+        ArrayList<String> namesAndMarks = data.getPlayersNameAndMarks();
+        int player1turn = data.getPlayerTurn(namesAndMarks.get(0));
+        int player2turn = data.getPlayerTurn(namesAndMarks.get(2));
+        if(player2turn > player1turn)
+            this.playerIdx = 1;
+        else
+            this.playerIdx = 0;
+        System.out.println(player1turn +"   "+ namesAndMarks.get(0) + "  " + player2turn + "    " + namesAndMarks.get(2));
+        this.players.add(
+                this.playerFactory.getPlayer(data.getPlayerType(namesAndMarks.get(0)),
+                        namesAndMarks.get(0), namesAndMarks.get(1), player1turn));
+        this.players.add(
+                this.playerFactory.getPlayer(data.getPlayerType(namesAndMarks.get(2)),
+                        namesAndMarks.get(2), namesAndMarks.get(3), player2turn));
+
+
         // Create Tic Tac Toe subview, and set it into the parent layout's center position, replacing the config
         // menu.
         this.board = loadBoard();
@@ -173,17 +196,19 @@ public class TicTacToe extends Application {
 
 
     private void saveGame() throws IOException {
-        Database data = new Database();
+
+//        data.addPlayers(this.players);
+        //String name = this.players.get(0).getName() + this.players.get(1).getName();
         for(int i = 0; i<3; i++)
             for(int j =0; j<3; j++) {
                 if(!Objects.equals(((Button)this.gridPaneArray[i][j]).getText(), "   ")) {
-                    System.out.println(((Button)this.gridPaneArray[i][j]).getText());
-                    System.out.println(this.getPlayerNameByMarker(((Button)this.gridPaneArray[i][j]).getText()));
+                    //System.out.println(((Button)this.gridPaneArray[i][j]).getText());
+                    //System.out.println(this.getPlayerNameByMarker(((Button)this.gridPaneArray[i][j]).getText()));
                     data.saveGame(this.getPlayerNameByMarker(((Button)this.gridPaneArray[i][j]).getText()),
                             ((Button)this.gridPaneArray[i][j]).getText(), i, j);
                 }
             }
-        data.saveGameToFile(data);
+        data.saveGameToFile();
     }
 
     public String getPlayerNameByMarker(String marker){
@@ -304,15 +329,19 @@ public class TicTacToe extends Application {
     }
 
     private GridPane loadBoard() throws IOException {
-        Database database = new Database();
-        database = database.uploadGameFromFile();
-        ArrayList<String> namesAndMarks = database.getPlayersNameAndMarks();
-        this.players.add(
-                this.playerFactory.getPlayer(PlayerFactory.PlayerTypes.SENTIENT,
-                        namesAndMarks.get(0), namesAndMarks.get(1), database.getPlayerTurn(namesAndMarks.get(0))));
-        this.players.add(
-                this.playerFactory.getPlayer(PlayerFactory.PlayerTypes.SENTIENT,
-                        namesAndMarks.get(2), namesAndMarks.get(3), database.getPlayerTurn(namesAndMarks.get(2))));
+
+//        Database database = new Database();
+//        database = database.uploadGameFromFile();
+//        ArrayList<String> namesAndMarks = database.getPlayersNameAndMarks();
+//        this.players.add(
+//                this.playerFactory.getPlayer(PlayerFactory.PlayerTypes.SENTIENT,
+//                        namesAndMarks.get(0), namesAndMarks.get(1), database.getPlayerTurn(namesAndMarks.get(0))));
+//        this.players.add(
+//                this.playerFactory.getPlayer(PlayerFactory.PlayerTypes.SENTIENT,
+//                        namesAndMarks.get(2), namesAndMarks.get(3), database.getPlayerTurn(namesAndMarks.get(2))));
+//        System.out.println(this.players.get(0).getType());
+//        System.out.println(this.players.get(1).getType());
+
         GridPane board = new GridPane();
         for (int r = 0; r < this.squares; r++) {
             // Set this row size constraint
@@ -329,13 +358,13 @@ public class TicTacToe extends Application {
                     board.getColumnConstraints().add(cc);
                 }
                 // Add Button to row column location.
-                //TODO aici creezi diferit
-
                 BoardButton square = new BoardButton(c, r, "   ");
                 square.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-                if(database.containsMove(r,c)){
-                    System.out.println(r + "  " + c);
-                    square.setText(database.getPlayerMark(r,c));
+                //TODO aici creezi diferit
+                if(data.containsMove(r,c)){
+                    //System.out.println(r + "  " + c);
+                    square.setText(data.getPlayerMark(r,c));
+                    this.squaresPlayed++;
                 }
                 square.setOnAction((event) -> {
                     // If this button is already marked give an illegal move notice.

@@ -8,6 +8,7 @@ public class Computer extends Player {
     public Computer(String name, String marker, int turn) {
         super(name, marker, turn);
     }
+
     @Override
     //public void takeTurn(GridPane board) {
     public void takeTurn(TicTacToe game) {

@@ -18,4 +18,5 @@ public class PlayerFactory {
             case SENTIENT -> new Sentient(name, marker, turn);
         };
     }
+
 }
