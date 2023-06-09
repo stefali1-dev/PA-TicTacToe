@@ -12,18 +12,6 @@ public class Computer extends Player {
     @Override
     //public void takeTurn(GridPane board) {
     public void takeTurn(TicTacToe game) {
-        /*
-        outerLoop:
-        for(int r=0; r<board.length; r++) {
-            for(int c=0; c<board[r].length; c++) {
-                BoardButton square = (BoardButton)board[r][c];
-                if(square.isAvailable()) {
-                    Platform.runLater(square::fire);
-                    break outerLoop;
-                }
-            }
-        }
-        */
         // Get the game board
         Node[][] board = game.getBoard();
         // Initialize best score to min or max depending on player's minimax role.
@@ -32,21 +20,22 @@ public class Computer extends Player {
         // This will have the row, column that represents our best move
         int[] move = new int[2];
         // Loop over all squares to find the minimizing/maximizing move.
-        for(int r=0; r<board.length; r++) {
-            for(int c=0; c<board[r].length; c++) {
-                BoardButton square = (BoardButton)board[r][c];
+        for(int row=0; row<board.length; row++) {
+            for(int column=0; column<board[row].length; column++) {
+                BoardButton square = (BoardButton)board[row][column];
                 // If a square is available, test it out
                 if(square.isAvailable()) {
                     // Simulate choosing this available square (i.e. my next move)
                     square.setText(this.getMarker());
-                    // The next player can't be maximizing because I am maximizing, but I just moved so isMaximizing is false.
-                    int score = minimax(game, square, 0, this.getTurn(), false);  //this.getTurn() != 0
+
+                    // I just moved so isMaximizing is false.
+                    int score = minimax(game, square, 0, this.getTurn(), false);
                     // Remove my fake choice from board
                     square.setText("");
                     if( score > bestScore ) {
                         bestScore = score;
-                        move[0] = r;
-                        move[1] = c;
+                        move[0] = row;
+                        move[1] = column;
                     }
                 }
             }
@@ -73,63 +62,87 @@ public class Computer extends Player {
     }
 
     private int minimax(TicTacToe game, BoardButton sq, int depth, int playerIdx, boolean isMaximizing) {
-        //TODO: use Max^N algorithm to handle more than 2 players.
+        // Indentation string based on depth for better visualization
         String sp = spacing(depth);
+
+        // Print the current move for debugging
         System.out.printf("%s(%d, %d)%n", sp, sq.getRow(), sq.getCol());
-        if(game.checkWinner(sq.getRow(), sq.getCol(), game.getPlayers().get(playerIdx).getMarker())) {
-            System.out.printf("%s  This would be a winner for %s%n", sp, game.getPlayers().get(playerIdx).getName());
-            // TODO: handle case of Tie (i.e. score 0).
-            // If its a winner, who is the winner?
+
+        // Check if the current move is a winning move
+        if (game.checkWinner(sq.getRow(), sq.getCol(), game.getPlayers().get(playerIdx).getMarker())) {
+            System.out.printf("%sThis would be a winner for %s%n", sp, game.getPlayers().get(playerIdx).getName());
+
+            // If it's a winner, determine the score based on the current player's turn
             return (this.getTurn() == playerIdx) ? 1 : -1;
         }
-        // Get the board.
+
+        // Get the board
         Node[][] board = game.getBoard();
 
-        if(checkTie(board)) {
+        // Check if the game is a tie
+        if (checkTie(board)) {
             System.out.printf("%sWould be a tie!%n", sp);
             return 0;
         }
 
-        // Now that I've moved and checked if it was a winning move, progress to the next player
-        playerIdx = (playerIdx+1) % game.getPlayers().size();
+        // Progress to the next player
+        playerIdx = (playerIdx + 1) % game.getPlayers().size();
 
         int bestScore;
-        if(isMaximizing) {
-            //System.out.printf("%sMaxP: %d AI_T: %d%n", sp, playerIdx, this.getTurn());
+
+        if (isMaximizing) {
+            // Maximizing player's turn
             bestScore = Integer.MIN_VALUE;
-            for(int r=0; r<board.length; r++) {
-                for(int c=0; c<board[r].length; c++) {
-                    BoardButton square = (BoardButton)board[r][c];
+
+            // Iterate over each square on the board
+            for (int r = 0; r < board.length; r++) {
+                for (int c = 0; c < board[r].length; c++) {
+                    BoardButton square = (BoardButton) board[r][c];
+
                     // If a square is available, test it out
-                    if(square.isAvailable()) {
+                    if (square.isAvailable()) {
                         // Simulate choosing this available square
                         square.setText(game.getPlayers().get(playerIdx).getMarker());
-                        int score = minimax(game, square, depth+1, playerIdx, false);
-                        // Remove my fake choice from board
+
+                        // Recursively call minimax for the next depth, updating the player index and changing to minimizing turn
+                        int score = minimax(game, square, depth + 1, playerIdx, false);
+
+                        // Remove the simulated choice from the board
                         square.setText("");
+
+                        // Update the best score by maximizing the obtained score
                         bestScore = Math.max(score, bestScore);
                     }
                 }
             }
-            return bestScore;
         } else {
-            //System.out.printf("%sMinP: %d AI_T: %d%n", sp, playerIdx, this.getTurn());
+            // Minimizing player's turn
             bestScore = Integer.MAX_VALUE;
-            for(int r=0; r<board.length; r++) {
-                for(int c=0; c<board[r].length; c++) {
-                    BoardButton square = (BoardButton)board[r][c];
+
+            // Iterate over each square on the board
+            for (int r = 0; r < board.length; r++) {
+                for (int c = 0; c < board[r].length; c++) {
+                    BoardButton square = (BoardButton) board[r][c];
+
                     // If a square is available, test it out
-                    if(square.isAvailable()) {
+                    if (square.isAvailable()) {
                         // Simulate choosing this available square
                         square.setText(game.getPlayers().get(playerIdx).getMarker());
-                        int score = minimax(game, square, depth+1, playerIdx, true);
-                        // Remove my fake choice from board
+
+                        // Recursively call minimax for the next depth, updating the player index and changing to maximizing turn
+                        int score = minimax(game, square, depth + 1, playerIdx, true);
+
+                        // Remove the simulated choice from the board
                         square.setText("");
+
+                        // Update the best score by minimizing the obtained score
                         bestScore = Math.min(score, bestScore);
                     }
                 }
             }
-            return bestScore;
         }
+        System.out.println(bestScore);
+        return bestScore;
     }
+
 }
