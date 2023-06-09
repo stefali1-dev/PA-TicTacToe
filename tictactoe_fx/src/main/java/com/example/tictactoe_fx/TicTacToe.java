@@ -1,6 +1,5 @@
 package com.example.tictactoe_fx;
 
-import com.almasb.fxgl.app.SystemActions;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -20,7 +19,7 @@ import java.util.Objects;
 
 public class TicTacToe extends Application {
 
-    private Node[][] gridPaneArray = null; // A better way to keep track of my board and access it by x, y
+    private Node[][] gridPaneArray = null; // A way to keep track of my board and access it by x, y
     private Label lblState;
     private GridPane board;
     private BorderPane gameLayout;
@@ -49,6 +48,9 @@ public class TicTacToe extends Application {
 
     @Override
     public void start(Stage window) throws IOException {
+        /**
+         *
+         */
         //System.out.println(data.getPlayersNameAndMarks() + "1");
         window.setWidth(size);
         window.setHeight(size);
@@ -68,7 +70,7 @@ public class TicTacToe extends Application {
         Button btnLoadGame = new Button("Load Game");
         btnLoadGame.setOnAction((event) -> {
             try {
-                //TODO add players here
+                //Upload players from backup
                 this.data = data.uploadGameFromFile(data);
                 this.loadGame();
             } catch (IOException e) {
@@ -79,6 +81,7 @@ public class TicTacToe extends Application {
         Button btnSaveGame = new Button("Save Game");
         btnSaveGame.setOnAction((event) -> {
             try {
+                //Save game state
                 this.saveGame();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -106,6 +109,9 @@ public class TicTacToe extends Application {
     }
 
     public VBox createConfigMenu() {
+        /**
+         * Creates player configuration menu and extract this info, hidden when game starts
+         */
         VBox vbLayout = new VBox();
         // Create a combo box with supported player types to select the player type
         ComboBox<PlayerFactory.PlayerTypes> comboBox =
@@ -135,18 +141,23 @@ public class TicTacToe extends Application {
         // Create Add player buttons for menu
         Button btnAddPlayer = new Button("Add Player");
         btnAddPlayer.setMaxWidth(Double.MAX_VALUE);
+
         btnAddPlayer.setOnAction((event) -> {
-            //TODO: Add logic into players to make sure we can't add the same player or marker twice
+            //Get players info one by one
             String name = tfPlayerName.getText();
             String marker = tfMarker.getText();
             int turn = this.players.size();
+
+            //Add new crated players
             this.players.add(
                     this.playerFactory.getPlayer(comboBox.getValue(), name, marker, turn));
             this.data.savePlayerType(name, comboBox.getValue());
+
             // Clear the menu components.
             comboBox.setValue(null);
             tfPlayerName.setText(null);
             tfMarker.setText(null);
+
             // Update feedback to let us know the player was added.
             this.lblState.setText(String.format("Player %s : %s added...", name, marker));
         });
@@ -156,18 +167,23 @@ public class TicTacToe extends Application {
     }
 
     private void startOver() {
+        /**
+         * Function that restarts game
+         */
         this.playerIdx = -1;
         this.squaresPlayed = 0;
-        // Create Tic Tac Toe subview, and set it into the parent layout's center position, replacing the config
-        // menu.
+        // Create Tic Tac Toe subview, and set it into the parent layout's center position, replacing the config menu
         this.board = createBoard();
         this.gameLayout.setCenter(this.board);
-        // Start the game. After this, game progress progresses with button board button clicks.
+        // Start the game. After this, game continues with button board button clicks.
         play();
     }
 
 
     private void loadGame() throws IOException {
+        /**
+         * Function that load a game from a backup file using database class
+         */
         this.squaresPlayed = 0;
         ArrayList<String> namesAndMarks = data.getPlayersNameAndMarks();
         int player1turn = data.getPlayerTurn(namesAndMarks.get(0));
@@ -196,9 +212,9 @@ public class TicTacToe extends Application {
 
 
     private void saveGame() throws IOException {
-
-//        data.addPlayers(this.players);
-        //String name = this.players.get(0).getName() + this.players.get(1).getName();
+        /**
+         * Function that save state of a game using database class, saves board moves and players info
+         */
         for(int i = 0; i<3; i++)
             for(int j =0; j<3; j++) {
                 if(!Objects.equals(((Button)this.gridPaneArray[i][j]).getText(), "   ")) {
@@ -212,6 +228,9 @@ public class TicTacToe extends Application {
     }
 
     public String getPlayerNameByMarker(String marker){
+        /**
+         * Finds a player in players list by marker
+         */
         for (Player player:players) {
             if (player.getMarker().equals(marker))
                 return player.getName();
@@ -224,28 +243,42 @@ public class TicTacToe extends Application {
     }
 
     private void play() {
+        /**
+         * Function to start the game by choosing a player to take a turn
+         */
         Player p = this.nextPlayer();
         this.lblState.setText(String.format("Waiting for player %s to move...", p.getName()));
-        //p.takeTurn(this.board);
         p.takeTurn(this);
-        // Keeping track of plays, so we can easily tell when the board is filled in constant time.
+        // Keeping track of plays, so we can tell when the board is filled
         this.squaresPlayed++;
     }
 
     private Player nextPlayer() {
+        /**
+         * Function to track players turn
+         */
         this.playerIdx++;
         return this.players.get(this.playerIdx %= this.players.size());
     }
 
     public ArrayList<Player> getPlayers() {
+        /**
+         * Return game players
+         */
         return this.players;
     }
 
     public boolean checkTie() {
+        /**
+         * Check for a tie by comparing sqaures played with total number of squares
+         */
         return this.squaresPlayed == this.squaresSquared;
     }
 
     public boolean checkWinner(int r, int c, String marker) {
+        /**
+         * Check if player by mark won the game
+         */
         int col, row, diag, rdiag = diag = row = col = 0;
         for(int i=0; i<this.squares; i++) {
             if(((Button)this.gridPaneArray[r][i]).getText().equals(marker)) row++;
@@ -257,6 +290,9 @@ public class TicTacToe extends Application {
     }
 
     private void announceWinner(Player current) {
+        /**
+         *Function that pop out a window to announce the winner and starts the game over on close
+         */
         Alert a = new Alert(Alert.AlertType.INFORMATION);
         if( current == null) { // implies a tie
             a.setTitle("We have a tie!!!");
@@ -270,6 +306,9 @@ public class TicTacToe extends Application {
     }
 
     private GridPane createBoard() {
+        /**
+         * Function to create the game board that will pot out when starting the game
+         */
         GridPane board = new GridPane();
         for(int r=0; r<this.squares; r++) {
             // Set this row size constraint
@@ -321,6 +360,9 @@ public class TicTacToe extends Application {
     }
 
     private void initializeGridPaneArray(GridPane board) {
+        /**
+         * Function to add squares to a Node for easier access
+         */
         this.gridPaneArray = new Node[this.squares][this.squares];
         for(Node node : board.getChildren())
         {
@@ -329,19 +371,9 @@ public class TicTacToe extends Application {
     }
 
     private GridPane loadBoard() throws IOException {
-
-//        Database database = new Database();
-//        database = database.uploadGameFromFile();
-//        ArrayList<String> namesAndMarks = database.getPlayersNameAndMarks();
-//        this.players.add(
-//                this.playerFactory.getPlayer(PlayerFactory.PlayerTypes.SENTIENT,
-//                        namesAndMarks.get(0), namesAndMarks.get(1), database.getPlayerTurn(namesAndMarks.get(0))));
-//        this.players.add(
-//                this.playerFactory.getPlayer(PlayerFactory.PlayerTypes.SENTIENT,
-//                        namesAndMarks.get(2), namesAndMarks.get(3), database.getPlayerTurn(namesAndMarks.get(2))));
-//        System.out.println(this.players.get(0).getType());
-//        System.out.println(this.players.get(1).getType());
-
+        /**
+         * Function that loads game board from backup
+         */
         GridPane board = new GridPane();
         for (int r = 0; r < this.squares; r++) {
             // Set this row size constraint
@@ -360,7 +392,6 @@ public class TicTacToe extends Application {
                 // Add Button to row column location.
                 BoardButton square = new BoardButton(c, r, "   ");
                 square.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-                //TODO aici creezi diferit
                 if(data.containsMove(r,c)){
                     //System.out.println(r + "  " + c);
                     square.setText(data.getPlayerMark(r,c));

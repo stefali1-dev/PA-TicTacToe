@@ -1,7 +1,7 @@
 package com.example.tictactoe_fx;
 
-public class Sentient extends Player {
-    public Sentient(String name, String marker, int turn) {
+public class Human extends Player {
+    public Human(String name, String marker, int turn) {
         super(name, marker, turn);
     }
 

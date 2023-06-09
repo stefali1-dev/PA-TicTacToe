@@ -51,7 +51,7 @@ public class Database implements Serializable {
     public PlayerFactory.PlayerTypes getPlayerType(String name){
         if(this.boardInfo.get(name).get(0) == "Computer")
             return PlayerFactory.PlayerTypes.COMPUTER;
-        else return PlayerFactory.PlayerTypes.SENTIENT;
+        else return PlayerFactory.PlayerTypes.HUMAN;
     }
 
     public void saveGameToFile() throws IOException {

@@ -32,8 +32,8 @@ public abstract class Player implements Serializable {
     }
 
     public PlayerFactory.PlayerTypes getType(){
-        if(this.getClass() == Sentient.class)
-            return PlayerFactory.PlayerTypes.SENTIENT;
+        if(this.getClass() == Human.class)
+            return PlayerFactory.PlayerTypes.HUMAN;
         else
             return PlayerFactory.PlayerTypes.COMPUTER;
     }

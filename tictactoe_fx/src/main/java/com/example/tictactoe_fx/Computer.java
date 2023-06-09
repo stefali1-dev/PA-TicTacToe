@@ -40,7 +40,7 @@ public class Computer extends Player {
                     // Simulate choosing this available square (i.e. my next move)
                     square.setText(this.getMarker());
                     // The next player can't be maximizing because I am maximizing, but I just moved so isMaximizing is false.
-                    int score = minimax(game, square, 0, this.getTurn(), this.getTurn() != 0);
+                    int score = minimax(game, square, 0, this.getTurn(), false);  //this.getTurn() != 0
                     // Remove my fake choice from board
                     square.setText("");
                     if( score > bestScore ) {
