@@ -335,7 +335,7 @@ public class TicTacToe extends Application {
                         // Mark this board button with the current players marker
                         Player current = this.players.get(this.playerIdx);
                         square.setText(current.getMarker());
-                        // TODO: Check for winner here, and announce the winner before going to next player if there is one.
+                        // TODO: check for winner here.
                         if(checkTie()) {
                             this.announceWinner(null);
                         } else if (checkWinner(square.getRow(), square.getCol(), current.getMarker())) {
@@ -403,7 +403,7 @@ public class TicTacToe extends Application {
                         // Mark this board button with the current players marker
                         Player current = this.players.get(this.playerIdx);
                         square.setText(current.getMarker());
-                        // TODO: Check for winner here, and announce the winner before going to next player if there is one.
+                        // TODO: check for winner here
                         if (checkTie()) {
                             this.announceWinner(null);
                         } else if (checkWinner(square.getRow(), square.getCol(), current.getMarker())) {
