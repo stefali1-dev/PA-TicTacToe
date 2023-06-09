@@ -184,6 +184,7 @@ public class TicTacToe extends Application {
         /**
          * Function that load a game from a backup file using database class
          */
+
         this.squaresPlayed = 0;
         ArrayList<String> namesAndMarks = data.getPlayersNameAndMarks();
         int player1turn = data.getPlayerTurn(namesAndMarks.get(0));

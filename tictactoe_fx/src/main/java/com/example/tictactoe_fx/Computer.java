@@ -141,7 +141,6 @@ public class Computer extends Player {
                 }
             }
         }
-        System.out.println(bestScore);
         return bestScore;
     }
 
